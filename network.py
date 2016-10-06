@@ -57,6 +57,8 @@ while 1:
     for y in xrange(net_height):
         for x in xrange(net_width):
             nodes[y][x].step()
+    nodes[0][0].print_registers()
+    nodes[0][0].print_program()
 
     print in_queue
     print out_queue
