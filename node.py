@@ -26,7 +26,7 @@ def clamp(val, low, high):
         return high
     return val
 
-class Link:
+class Port:
     def __init__(self):
         self.val = None
 
@@ -50,8 +50,8 @@ class Node:
     def __init__(self):
         self.acc = 0
         self.bak = 0
-        self.links = {}
-        self.links["LAST"] = None
+        self.ports = {}
+        self.ports["LAST"] = None
         self.code = ""
         self.program = ""
         self.labels = {}
@@ -90,6 +90,7 @@ class Node:
             "JRO": (SRC,)
         }
 
+
     def __str__(self):
         return "PC: %d\nACC: %d\nBAK: %d" % (self.pc, self.acc, self.bak)
 
@@ -102,22 +103,19 @@ class Node:
             print instr[0].__name__, instr[1:]
 
 
-    def add_link(self, name, link):
-        """Add a link to the Node"""
+    def add_port(self, name, port):
+        """Add a port to the Node"""
 
-        self.links[name] = link
+        self.ports[name] = port
 
 
     def resolve_src(self, src):
         """Get the numerical value of a "SRC" argument.
         If the argument is a port, it will take the value."""
 
-        # TODO: There's probably some BS with "ANY":
-        #         need to figure out which link gets taken from first
-        #         in the event of a tie
         if src in PORTS:
-            return self.links[src].take()
-            self.links["LAST"] = self.links[src]
+            return self.ports[src].take()
+            self.ports["LAST"] = self.ports[src]
         elif src == "ACC":
             return self.acc
         elif src == "NIL":
@@ -133,11 +131,11 @@ class Node:
         return add("NIL")
 
     def mov(self, src, dst):
-        if src in PORTS and self.links[src].peek() is None:
+        if src in PORTS and self.ports[src].peek() is None:
             return 0
         elif dst in PORTS:
-            if self.links[dst].peek() is None:
-                self.links[dst].give(self.resolve_src(src))
+            if self.ports[dst].peek() is None:
+                self.ports[dst].give(self.resolve_src(src))
             else:
                 return 0
         elif dst == "ACC":

@@ -8,14 +8,14 @@ def read_file(filename):
     out_port = map(int, prg_file.readline().strip().split(','))
     nodes = [[node.Node() for _ in xrange(net_width)]
              for _ in xrange(net_height)]
-    links = [[node.Link() for _ in xrange(net_width + row%2)]
+    ports = [[node.Port() for _ in xrange(net_width + row%2)]
              for row in xrange(net_height*2 + 1)]
     for ny in xrange(net_height):
         for nx in xrange(net_width):
-            nodes[ny][nx].add_link("UP", links[ny*2][nx])
-            nodes[ny][nx].add_link("DOWN", links[(ny+1)*2][nx])
-            nodes[ny][nx].add_link("LEFT", links[(ny*2)+1][nx])
-            nodes[ny][nx].add_link("RIGHT", links[(ny*2)+1][nx+1])
+            nodes[ny][nx].add_port("UP", ports[ny*2][nx])
+            nodes[ny][nx].add_port("DOWN", ports[(ny+1)*2][nx])
+            nodes[ny][nx].add_port("LEFT", ports[(ny*2)+1][nx])
+            nodes[ny][nx].add_port("RIGHT", ports[(ny*2)+1][nx+1])
 
     node_header = prg_file.readline()
     while node_header:
@@ -34,25 +34,11 @@ def read_file(filename):
             nodes[y][x].assemble()
 
     return net_height, net_width, \
-           links[in_port[0]][in_port[1]], links[out_port[0]][out_port[1]], \
-           nodes, links
+           ports[in_port[0]][in_port[1]], ports[out_port[0]][out_port[1]], \
+           nodes, ports
 
 
-"""
-An example network:
-o  : Node
-|  : vertical link
--- : Horizontal link
-
-   |  |  |
- --o--o--o--
-   |  |  |
- --o--o--o--
-   |  |  |
-"""
-
-
-net_height, net_width, in_port, out_port, nodes, links = read_file("programs/example-program-1.tis")
+net_height, net_width, in_port, out_port, nodes, ports = read_file("programs/example-program-1.tis")
 
 
 in_queue = [1, 0, -1]
