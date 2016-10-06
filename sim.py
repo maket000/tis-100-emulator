@@ -1,5 +1,10 @@
 # TODO: real error handling
 
+# TODO: fix how ports work, each port is actually 2 ports
+#       currently commands like "MOV UP UP" will not work
+
+# TODO: Optional commas in instructions
+
 INT_MIN = -999
 INT_MAX = 999
 
@@ -7,7 +12,8 @@ SRC = 0
 DST = 1
 LABEL = 2
 
-PORTS = ["UP", "DOWN", "LEFT", "RIGHT", "ANY", "LAST"]
+REG_PORTS = ["UP", "DOWN", "LEFT", "RIGHT"]
+PORTS = REG_PORTS + ["ANY", "LAST"]
 REGISTERS = ["ACC", "NIL"]
 
 
@@ -19,6 +25,44 @@ def clamp(val, low, high):
     elif val > high:
         return high
     return val
+
+
+def readFile(filename):
+    prg_file = open(filename)
+    
+    net_height, net_width = map(int, prg_file.readline().strip().split(','))
+    in_port = map(int, prg_file.readline().strip().split(','))
+    out_port = map(int, prg_file.readline().strip().split(','))
+    nodes = [[Node() for _ in xrange(net_width)]
+             for _ in xrange(net_height)]
+    links = [[Link() for _ in xrange(net_width + row%2)]
+             for row in xrange(net_height*2 + 1)]
+    for ny in xrange(net_height):
+        for nx in xrange(net_width):
+            nodes[ny][nx].add_link("UP", links[ny*2][nx])
+            nodes[ny][nx].add_link("DOWN", links[(ny+1)*2][nx])
+            nodes[ny][nx].add_link("LEFT", links[(ny*2)+1][nx])
+            nodes[ny][nx].add_link("RIGHT", links[(ny*2)+1][nx+1])
+
+    node_header = prg_file.readline()
+    while node_header:
+        node_y, node_x = map(int, node_header.strip().split(','))
+        code = ""
+        code_line = prg_file.readline()
+        while code_line.strip() != '~':
+            code += code_line
+            code_line = prg_file.readline()
+        nodes[node_y][node_x].code = code
+        node_header = prg_file.readline()
+    prg_file.close()
+
+    for y in xrange(net_height):
+        for x in xrange(net_width):
+            nodes[y][x].assemble()
+
+    return net_height, net_width, \
+           links[in_port[0]][in_port[1]], links[out_port[0]][out_port[1]], \
+           nodes, links
 
 
 class Link:
@@ -129,12 +173,12 @@ class Node:
 
     def mov(self, src, dst):
         if src in PORTS and self.links[src].peek() is None:
-            return None
+            return 0
         elif dst in PORTS:
             if self.links[dst].peek() is None:
                 self.links[dst].give(self.resolve_src(src))
             else:
-                return None
+                return 0
         elif dst == "ACC":
             self.acc = self.resolve_src(src)
         return 1
@@ -267,10 +311,9 @@ class Node:
         return True
 
     def step(self):
-        print self.pc
-        instr = self.program[self.pc]
-        print instr[0].__name__, instr[1:]
-        self.pc = (self.pc + instr[0](*instr[1:])) % self.program_length
+        if self.program:
+            instr = self.program[self.pc]
+            self.pc = (self.pc + instr[0](*instr[1:])) % self.program_length
 
 
 node_row_size = 4
@@ -290,44 +333,28 @@ o  : Node
    |  |  |
 """
 
-# TODO: read network configurations from a file
-nodes = [[Node() for _ in xrange(node_row_size)]
-         for _ in xrange(node_column_size)]
-links = [[Link() for _ in xrange(node_row_size + row%2)]
-         for row in xrange(node_column_size*2 + 1)]
 
-for ny in xrange(node_column_size):
-    for nx in xrange(node_row_size):
-        nodes[ny][nx].add_link("UP", links[ny*2][nx])
-        nodes[ny][nx].add_link("DOWN", links[(ny+1)*2][nx])
-        nodes[ny][nx].add_link("LEFT", links[(ny*2)+1][nx])
-        nodes[ny][nx].add_link("RIGHT", links[(ny*2)+1][nx+1])
-
-
-# Simple Test Program
-
-nodes[0][0].code = """INIT: SUB ACC
-ST: ADD UP
-JEZ END
-SAV
-JMP ST
-
-END:
-MOV ACC DOWN
-"""
-
-nodes[0][0].assemble()
-nodes[0][0].print_program()
+net_height, net_width, in_port, out_port, nodes, links = readFile("programs/example-program-1.tis")
 
 
 in_queue = [1, 0, -1]
+out_queue = []
+
+print in_queue
+print out_queue
+print
 while 1:
     raw_input()
-    if in_queue and links[0][0].peek() is None:
-        links[0][0].give(in_queue.pop(0))
+    if in_queue and in_port.peek() is None:
+        in_port.give(in_queue.pop(0))
+    if not (out_port.peek() is None):
+        out_queue.append(out_port.take())
 
-    nodes[0][0].step()
+    for y in xrange(net_height):
+        for x in xrange(net_width):
+            print y, x
+            nodes[y][x].step()
 
     print in_queue
-    print links[0][0]
-    print nodes[0][0]
+    print out_queue
+    print
