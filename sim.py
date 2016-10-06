@@ -88,7 +88,7 @@ class Node:
     def __str__(self):
         return "PC: %d\nACC: %d\nBAK: %d" % (self.pc, self.acc, self.bak)
 
-    def printProgram(self):
+    def print_program(self):
         print "LABELS"
         for label in self.labels:
             print label, self.labels[label]
@@ -97,13 +97,13 @@ class Node:
             print instr[0].__name__, instr[1:]
 
 
-    def addLink(self, name, link):
+    def add_link(self, name, link):
         """Add a link to the Node"""
 
         self.links[name] = link
 
 
-    def resolveSrc(self, src):
+    def resolve_src(self, src):
         """Get the numerical value of a "SRC" argument.
         If the argument is a port, it will take the value."""
 
@@ -120,7 +120,7 @@ class Node:
         else:
             return src
 
-    def labelJump(self, label):
+    def label_jump(self, label):
         return self.labels[label] - self.pc
 
     # Command functions all return the change in the PC after running
@@ -132,11 +132,11 @@ class Node:
             return None
         elif dst in PORTS:
             if self.links[dst].peek() is None:
-                self.links[dst].give(self.resolveSrc(src))
+                self.links[dst].give(self.resolve_src(src))
             else:
                 return None
         elif dst == "ACC":
-            self.acc = self.resolveSrc(src)
+            self.acc = self.resolve_src(src)
         return 1
 
     def swp(self):
@@ -148,7 +148,7 @@ class Node:
         return 1
 
     def add(self, src):
-        val = self.resolveSrc(src)
+        val = self.resolve_src(src)
         if val is None:
             return 0
         else:
@@ -156,7 +156,7 @@ class Node:
             return 1
 
     def sub(self, src):
-        val = self.resolveSrc(src)
+        val = self.resolve_src(src)
         if val is None:
             return 0
         else:
@@ -168,22 +168,22 @@ class Node:
         return 1
 
     def jmp(self, label):
-        return self.labelJump(label)
+        return self.label_jump(label)
 
     def jez(self, label):
-        return self.labelJump(label) if self.acc == 0 else 1
+        return self.label_jump(label) if self.acc == 0 else 1
 
     def jnz(self, label):
-        return self.labelJump(label) if self.acc != 0 else 1
+        return self.label_jump(label) if self.acc != 0 else 1
 
     def jgz(self, label):
-        return self.labelJump(label) if self.acc > 0 else 1
+        return self.label_jump(label) if self.acc > 0 else 1
 
     def jlz(self, label):
-        return self.labelJump(label) if self.acc < 0 else 1
+        return self.label_jump(label) if self.acc < 0 else 1
 
     def jro(self, src):
-        val = self.resolveSrc(src)
+        val = self.resolve_src(src)
         return 0 if val is None else val
 
 
@@ -220,7 +220,7 @@ class Node:
         for line in splitlines:
             if line:
                 if line[0] in self.instructions:
-                    if not self.checkArgument(
+                    if not self.check_args(
                         line[1:],
                         self.argument_rules[line[0]]):
                         raise
@@ -235,7 +235,7 @@ class Node:
 
 
 
-    def checkArgument(self, args, rules):
+    def check_args(self, args, rules):
         """Check that a list of arguments "args", fits the rules
         described by the "rules" array"""
 
@@ -298,10 +298,10 @@ links = [[Link() for _ in xrange(node_row_size + row%2)]
 
 for ny in xrange(node_column_size):
     for nx in xrange(node_row_size):
-        nodes[ny][nx].addLink("UP", links[ny*2][nx])
-        nodes[ny][nx].addLink("DOWN", links[(ny+1)*2][nx])
-        nodes[ny][nx].addLink("LEFT", links[(ny*2)+1][nx])
-        nodes[ny][nx].addLink("RIGHT", links[(ny*2)+1][nx+1])
+        nodes[ny][nx].add_link("UP", links[ny*2][nx])
+        nodes[ny][nx].add_link("DOWN", links[(ny+1)*2][nx])
+        nodes[ny][nx].add_link("LEFT", links[(ny*2)+1][nx])
+        nodes[ny][nx].add_link("RIGHT", links[(ny*2)+1][nx+1])
 
 
 # Simple Test Program
@@ -317,7 +317,7 @@ MOV ACC DOWN
 """
 
 nodes[0][0].assemble()
-nodes[0][0].printProgram()
+nodes[0][0].print_program()
 
 
 in_queue = [1, 0, -1]
