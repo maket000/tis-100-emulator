@@ -1,7 +1,6 @@
 # TODO: real error handling
 
-# TODO: fix how ports work, each port is actually 2 ports
-#       currently commands like "MOV UP UP" will not work
+# TODO: fix how ports work
 
 # TODO: Comments(#)
 #       Program Titles(##)
@@ -59,6 +58,7 @@ class Node:
         self.pc = 0
         self.program_length = 0
         self.display_lines = []
+        self.program_name = None
 
         self.instructions = {
             "NOP": self.nop,
@@ -210,8 +210,16 @@ class Node:
         self.program_length = 0
         self.display_lines = []
         lone_labels = []
-        for line_num, rawline in enumerate(self.code.split('\n')):
-            line = rawline.strip().split()
+        for line_num, raw_line in enumerate(self.code.split('\n')):
+            title_pos = raw_line.find("##") #program title
+            if title_pos != -1:
+                self.program_name = raw_line[title_pos+2:]
+                raw_line = raw_line[title_pos]
+            comment_pos = raw_line.find('#') #comments
+            if comment_pos != -1:
+                raw_line = raw_line[:comment_pos]
+
+            line = raw_line.strip().split()
             if line:
                 if line[0][-1] == ':': #label
                     if line[1:]: #label with instruction
@@ -224,7 +232,7 @@ class Node:
                         self.display_lines.append(line_num)
                     else: #label without instruction
                         lone_labels.append(line[0][:-1])
-                else:
+                else: #instruction
                     splitlines.append(line)
                     for label in lone_labels:
                         self.labels[label] = self.program_length

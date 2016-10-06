@@ -38,7 +38,9 @@ def read_file(filename):
            nodes, ports
 
 
-net_height, net_width, in_port, out_port, nodes, ports = read_file("programs/example-program-1.tis")
+program_file = "programs/example-program-1.tis"
+
+net_height, net_width, in_port, out_port, nodes, ports = read_file(program_file)
 
 
 in_queue = [1, 0, -1]
