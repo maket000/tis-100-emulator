@@ -5,6 +5,9 @@
 
 # TODO: Optional commas in instructions
 
+# TODO: Comments(#)
+#       Program Titles(##)
+
 INT_MIN = -999
 INT_MAX = 999
 
@@ -223,14 +226,15 @@ class Node:
         for line in splitlines:
             if line:
                 if line[0] in self.instructions:
+                    args = [arg.rstrip(',') for arg in line[1:]]
                     if not self.check_args(
                         line[1:],
-                        self.argument_rules[line[0]]):
+                        self.argument_rules[args):
                         raise
                     else:
                         self.program.append(
                             (self.instructions[line[0]],)
-                            + tuple(line[1:]))
+                            + tuple(args))
                 else:
                     raise
             else:
