@@ -2,9 +2,6 @@
 
 # TODO: fix how ports work
 
-# TODO: Comments(#)
-#       Program Titles(##)
-
 INT_MIN = -999
 INT_MAX = 999
 
@@ -102,7 +99,7 @@ class Node:
             print instr[0].__name__, instr[1:]
 
     def print_registers(self):
-        return "ACC: %d\nBAK: %d" % (self.acc, self.bak)
+        print "ACC: %d\nBAK: %d" % (self.acc, self.bak)
 
     def print_program(self):
         for line_num, line in enumerate(self.code.split('\n')):

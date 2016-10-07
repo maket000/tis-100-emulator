@@ -1,3 +1,7 @@
+# TODO: multiple inputs/outputs
+
+# TODO: fix ports here too!
+
 import node
 
 def read_file(filename):
@@ -33,35 +37,56 @@ def read_file(filename):
         for x in xrange(net_width):
             nodes[y][x].assemble()
 
-    return net_height, net_width, \
-           ports[in_port[0]][in_port[1]], ports[out_port[0]][out_port[1]], \
-           nodes, ports
+    return {
+        "height": net_height,
+        "width": net_width,
+        "in_port": ports[in_port[0]][in_port[1]],
+        "out_port": ports[out_port[0]][out_port[1]],
+        "nodes": nodes,
+        "ports": ports
+    }
+
+
+class Network:
+    def __init__(self, filename, input_data=[]):
+        net_dat = read_file(filename)
+        self.height = net_dat["height"]
+        self.width = net_dat["width"]
+        self.in_port = net_dat["in_port"]
+        self.out_port = net_dat["out_port"]
+        self.nodes = net_dat["nodes"]
+        self.ports = net_dat["ports"]
+
+        self.input_data = input_data
+        self.output_data = []
+
+    def step(self):
+        if self.input_data and self.in_port.peek() is None:
+            self.in_port.give(self.input_data.pop(0))
+        if not(self.out_port.peek() is None):
+            self.output_data.append(self.out_port.take())
+
+        for y in xrange(self.height):
+            for x in xrange(self.width):
+                self.nodes[y][x].step()
+
+    def print_state(self):
+        print '-' * 16
+        self.nodes[0][0].print_registers()
+        self.nodes[0][0].print_program()
+        print "\nINPUT:", self.input_data
+        print "OUTPUT:", self.output_data
+        print
+
+
 
 
 program_file = "programs/example-program-1.tis"
+input_data = [1, 0, -1]
+net = Network(program_file, input_data)
 
-net_height, net_width, in_port, out_port, nodes, ports = read_file(program_file)
-
-
-in_queue = [1, 0, -1]
-out_queue = []
-
-print in_queue
-print out_queue
-print
+net.print_state()
 while 1:
     raw_input()
-    if in_queue and in_port.peek() is None:
-        in_port.give(in_queue.pop(0))
-    if not (out_port.peek() is None):
-        out_queue.append(out_port.take())
-
-    for y in xrange(net_height):
-        for x in xrange(net_width):
-            nodes[y][x].step()
-    nodes[0][0].print_registers()
-    nodes[0][0].print_program()
-
-    print in_queue
-    print out_queue
-    print
+    net.step()
+    net.print_state()
