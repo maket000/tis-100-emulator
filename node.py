@@ -2,8 +2,14 @@
 
 # TODO: fix how ports work
 
+# TODO: Printing code pointer is wrong,
+#           has to do with blank lines or label-only lines
+
 INT_MIN = -999
 INT_MAX = 999
+
+CODE_LINES = 15
+LINE_LEN = 16
 
 SRC = 0
 DST = 1
@@ -89,6 +95,30 @@ class Node:
             "JRO": (SRC,)
         }
 
+    def __str__(self):
+        code_lines = self.code.split('\n')
+        code_lines += [''] * (CODE_LINES - len(code_lines))
+        for c in xrange(CODE_LINES):
+            if c == self.pc:
+                code_lines[c] = "|>" + code_lines[c].ljust(LINE_LEN, ' ') + '|'
+            else:
+                code_lines[c] = "| " + code_lines[c].ljust(LINE_LEN, ' ') + '|'
+        
+        s = "----------------------------\n"
+        for i in xrange(CODE_LINES):
+            s += code_lines[i]
+            if i == 0:
+                s += " ACC: %s |\n" % (str(self.acc).ljust(4, ' '))
+            elif i == 1:
+                s += " BAK: %s |\n" % (str(self.bak).ljust(4, ' '))
+            else:
+                s += "           |\n"
+        s += "----------------------------\n"
+        return s
+
+
+
+
 
     def print_labels(self):
         for label in self.labels:
@@ -99,7 +129,7 @@ class Node:
             print instr[0].__name__, instr[1:]
 
     def print_registers(self):
-        print "ACC: %d\nBAK: %d" % (self.acc, self.bak)
+        return "ACC: %d\nBAK: %d" % (self.acc, self.bak)
 
     def print_program(self):
         for line_num, line in enumerate(self.code.split('\n')):

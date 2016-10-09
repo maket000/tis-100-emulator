@@ -72,8 +72,7 @@ class Network:
 
     def print_state(self):
         print '-' * 16
-        self.nodes[0][0].print_registers()
-        self.nodes[0][0].print_program()
+        print self.nodes[0][0]
         print "\nINPUT:", self.input_data
         print "OUTPUT:", self.output_data
         print
