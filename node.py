@@ -11,6 +11,10 @@ INT_MAX = 999
 CODE_LINES = 15
 LINE_LEN = 16
 
+MODE_RUN = 0
+MODE_READ = 1
+MODE_WRITE = 2
+
 SRC = 0
 DST = 1
 LABEL = 2
@@ -53,6 +57,7 @@ class Node:
     def __init__(self):
         self.acc = 0
         self.bak = 0
+        self.mode = MODE_RUN
         self.ports = {}
         self.ports["LAST"] = None
         self.code = ""
@@ -99,25 +104,39 @@ class Node:
         code_lines = self.code.split('\n')
         code_lines += [''] * (CODE_LINES - len(code_lines))
         for c in xrange(CODE_LINES):
-            if c == self.pc:
+            if c == self.display_lines[self.pc]:
                 code_lines[c] = "|>" + code_lines[c].ljust(LINE_LEN, ' ') + '|'
             else:
                 code_lines[c] = "| " + code_lines[c].ljust(LINE_LEN, ' ') + '|'
-        
-        s = "----------------------------\n"
+
+        if self.acc <= -100:
+            acc_str = "%s|\n" % (str(self.acc).center(5))
+        else:
+            acc_str = "(%s)|\n" % (str(self.acc).center(3))
+        if self.bak <= -100:
+            bak_str = "%s|\n" % (str(self.bak).center(5))
+        else:
+            bak_str = "(%s)|\n" % (str(self.bak).center(3))
+
+        s = "-------------------------\n"
         for i in xrange(CODE_LINES):
             s += code_lines[i]
             if i == 0:
-                s += " ACC: %s |\n" % (str(self.acc).ljust(4, ' '))
+                s += " ACC |\n"
             elif i == 1:
-                s += " BAK: %s |\n" % (str(self.bak).ljust(4, ' '))
+                s += acc_str
+            elif i == 2:
+                s += "-----|\n"
+            elif i == 3:
+                s += " BAK |\n"
+            elif i == 4:
+                s += bak_str
+            elif i == 5:
+                s += "-----|\n"
             else:
-                s += "           |\n"
-        s += "----------------------------\n"
+                s += "     |\n"
+        s += "-------------------------\n"
         return s
-
-
-
 
 
     def print_labels(self):
