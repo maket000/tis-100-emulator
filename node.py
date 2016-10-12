@@ -26,7 +26,6 @@ REGISTERS = ["ACC", "NIL"]
 
 def clamp(val, low, high):
     """Return val, within [low,high]"""
-
     if val < low:
         return low
     elif val > high:
@@ -104,7 +103,7 @@ class Node:
         code_lines = self.code.split('\n')
         code_lines += [''] * (CODE_LINES - len(code_lines))
         for c in xrange(CODE_LINES):
-            if c == self.display_lines[self.pc]:
+            if self.display_lines and c == self.display_lines[self.pc]:
                 code_lines[c] = "|>" + code_lines[c].ljust(LINE_LEN, ' ') + '|'
             else:
                 code_lines[c] = "| " + code_lines[c].ljust(LINE_LEN, ' ') + '|'
@@ -138,6 +137,10 @@ class Node:
         s += "-------------------------\n"
         return s
 
+    def print_nc(self, window):
+        window.clear()
+        window.addstr(str(self))
+        window.refresh()
 
     def print_labels(self):
         for label in self.labels:
@@ -161,7 +164,6 @@ class Node:
 
     def add_port(self, name, port):
         """Add a port to the Node"""
-
         self.ports[name] = port
 
 

@@ -1,6 +1,7 @@
 # TODO: multiple inputs/outputs
 
 # TODO: fix ports here too!
+import curses
 
 import node
 
@@ -60,6 +61,12 @@ class Network:
         self.input_data = input_data
         self.output_data = []
 
+    def get_wins(self):
+        # TODO: ~magic numbers~
+        self.wins = [[curses.newwin(18, 26, y*22, x*32)
+                      for x in xrange(self.width)]
+                     for y in xrange(self.height)]
+
     def step(self):
         if self.input_data and self.in_port.peek() is None:
             self.in_port.give(self.input_data.pop(0))
@@ -71,21 +78,13 @@ class Network:
                 self.nodes[y][x].step()
 
     def print_state(self):
-        print '-' * 16
         print self.nodes[0][0]
         print "\nINPUT:", self.input_data
         print "OUTPUT:", self.output_data
         print
 
+    def print_nc(self):
+        for y in xrange(self.height):
+            for x in xrange(self.width):
+                self.nodes[y][x].print_nc(self.wins[y][x])
 
-
-
-program_file = "programs/example-program-1.tis"
-input_data = [1, 0, -1]
-net = Network(program_file, input_data)
-
-net.print_state()
-while 1:
-    raw_input()
-    net.step()
-    net.print_state()
