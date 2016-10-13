@@ -26,6 +26,16 @@ PORTS = REG_PORTS + ["ANY", "LAST"]
 REGISTERS = ["ACC", "NIL"]
 
 
+port_arrows = [["    | ^",
+                "    | |",
+                "    v |"],
+               ["",
+                " -->",
+                "",
+                " <--"]]
+port_val_spacing = map(lambda x: ' '*x, [False, 2, 1, 1, 0])
+
+
 def clamp(val, low, high):
     """Return val, within [low,high]"""
     if val < low:
@@ -53,6 +63,22 @@ class Port:
         if self.val != None:
             raise
         self.val = val
+
+    def print_static_nc(self, window, direction):
+        window.clear()
+        for line_num, line in enumerate(port_arrows[direction]):
+            window.addstr(line_num, 0, line)
+
+    # TODO: print different val's when ports are fixed
+    def print_nc(self, window, direction):
+        valstr = '?' if self.val is None else str(self.val)
+        if direction == 1: # horizontal port
+            window.addstr(0, 0, port_val_spacing[len(valstr)] + valstr)
+            window.addstr(4, 0, port_val_spacing[len(valstr)] + valstr)
+        else: # vertical port
+            window.addstr(1, 0, valstr.rjust(4))
+            window.addstr(1, 7, valstr.ljust(4))
+        window.refresh()
 
 class Node:
     def __init__(self):
@@ -123,11 +149,10 @@ class Node:
                 s += "-----|\n"
             else:
                 s += "     |\n"
-        s += "--------------------------\n"
+        s += "--------------------------"
         return s
 
-
-    def print_frame_nc(self, window):
+    def print_static_nc(self, window):
         window.clear()
         window.addstr(self.str_static())
 
@@ -141,13 +166,13 @@ class Node:
                           A_REVERSE)
 
         if self.acc <= -100:
-            acc_str = "%s|\n" % (str(self.acc).center(5))
+            acc_str = str(self.acc).center(5)
         else:
-            acc_str = "%s|\n" % (("(%s)" % (str(self.acc))).center(5))
+            acc_str = ("(%s)" % (str(self.acc))).center(5)
         if self.bak <= -100:
-            bak_str = "%s|\n" % (str(self.bak).center(5))
+            bak_str = str(self.bak).center(5)
         else:
-            bak_str = "%s|\n" % (("(%s)" % (str(self.bak))).center(5))
+            bak_str = ("(%s)" % (str(self.bak))).center(5)
 
         window.addstr(2, 20, acc_str.center(5))
         window.addstr(5, 20, bak_str.center(5))

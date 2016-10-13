@@ -63,9 +63,37 @@ class Network:
 
     def init_windows(self):
         # TODO: ~magic numbers~
-        self.nc_wins = [[curses.newwin(18, 28, (y*22)+1, (x*32)+1)
-                         for x in xrange(self.width)]
-                        for y in xrange(self.height)]
+        self.node_wins = [[curses.newwin(18, 28, (y*20)+3, (x*33)+6)
+                           for x in xrange(self.width)]
+                          for y in xrange(self.height)]
+        self.port_wins = []
+        for row in xrange(self.height*2 + 1):
+            winrow = []
+            if row % 2: # horizontal
+                for col in xrange(self.width + 1):
+                    winrow.append(curses.newwin(5, 4, ((row-1)*10)+9, col*33))
+            else: # vertical
+                for col in xrange(self.width):
+                    winrow.append(curses.newwin(3, 11, row*10, (col*33)+13))
+            self.port_wins.append(winrow)
+
+    def draw_static(self):
+        for y in xrange(self.height):
+            for x in xrange(self.width):
+                self.nodes[y][x].print_static_nc(self.node_wins[y][x])
+        for y in xrange(len(self.ports)):
+            for x in xrange(len(self.ports[y])):
+                self.ports[y][x].print_static_nc(self.port_wins[y][x], y%2)
+
+    def print_nc(self):
+        for y in xrange(self.height):
+            for x in xrange(self.width):
+                self.nodes[y][x].print_nc(self.node_wins[y][x])
+        for y in xrange(len(self.ports)):
+            for x in xrange(len(self.ports[y])):
+                pass
+                self.ports[y][x].print_nc(self.port_wins[y][x], y%2)
+
 
     def step(self):
         if self.input_data and self.in_port.peek() is None:
@@ -76,19 +104,3 @@ class Network:
         for y in xrange(self.height):
             for x in xrange(self.width):
                 self.nodes[y][x].step()
-
-    def print_state(self):
-        print self.nodes[0][0]
-        print "\nINPUT:", self.input_data
-        print "OUTPUT:", self.output_data
-        print
-
-    def draw_static(self):
-        for y in xrange(self.height):
-            for x in xrange(self.width):
-                self.nodes[y][x].print_frame_nc(self.nc_wins[y][x])
-
-    def print_nc(self):
-        for y in xrange(self.height):
-            for x in xrange(self.width):
-                self.nodes[y][x].print_nc(self.nc_wins[y][x])
