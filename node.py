@@ -2,9 +2,6 @@
 
 # TODO: fix how ports work
 
-# TODO: Printing code pointer is wrong,
-#           has to do with blank lines or label-only lines
-
 from curses import A_REVERSE
 
 INT_MIN = -999
@@ -178,25 +175,6 @@ class Node:
         window.addstr(5, 20, bak_str.center(5))
 
         window.refresh()
-
-    def print_labels(self):
-        for label in self.labels:
-            print label, self.labels[label]
-
-    def print_instructions(self):
-        for instr in self.program:
-            print instr[0].__name__, instr[1:]
-
-    def print_registers(self):
-        return "ACC: %d\nBAK: %d" % (self.acc, self.bak)
-
-    def print_program(self):
-        for line_num, line in enumerate(self.code.split('\n')):
-            if line_num == self.display_lines[self.pc]:
-                print ">",
-            else:
-                print " ",
-            print line
 
 
     def add_port(self, name, port):

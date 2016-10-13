@@ -1,5 +1,7 @@
 # TODO: multiple inputs/outputs
 
+# TODO: Saving!
+
 # TODO: fix ports here too!
 import curses
 
