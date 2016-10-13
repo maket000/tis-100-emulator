@@ -8,7 +8,8 @@ def main(stdscr):
     program_file = "programs/example-program-1.tis"
     input_data = [1, 0, -1]
     net = network.Network(program_file, input_data)
-    net.get_wins()
+    net.init_windows()
+    net.draw_static()
 
     while 1:
         stdscr.getch()

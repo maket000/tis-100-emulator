@@ -61,11 +61,11 @@ class Network:
         self.input_data = input_data
         self.output_data = []
 
-    def get_wins(self):
+    def init_windows(self):
         # TODO: ~magic numbers~
-        self.wins = [[curses.newwin(18, 26, y*22, x*32)
-                      for x in xrange(self.width)]
-                     for y in xrange(self.height)]
+        self.nc_wins = [[curses.newwin(18, 28, (y*22)+1, (x*32)+1)
+                         for x in xrange(self.width)]
+                        for y in xrange(self.height)]
 
     def step(self):
         if self.input_data and self.in_port.peek() is None:
@@ -83,8 +83,12 @@ class Network:
         print "OUTPUT:", self.output_data
         print
 
+    def draw_static(self):
+        for y in xrange(self.height):
+            for x in xrange(self.width):
+                self.nodes[y][x].print_frame_nc(self.nc_wins[y][x])
+
     def print_nc(self):
         for y in xrange(self.height):
             for x in xrange(self.width):
-                self.nodes[y][x].print_nc(self.wins[y][x])
-
+                self.nodes[y][x].print_nc(self.nc_wins[y][x])

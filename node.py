@@ -5,11 +5,13 @@
 # TODO: Printing code pointer is wrong,
 #           has to do with blank lines or label-only lines
 
+from curses import A_REVERSE
+
 INT_MIN = -999
 INT_MAX = 999
 
 CODE_LINES = 15
-LINE_LEN = 16
+LINE_LEN = 18
 
 MODE_RUN = 0
 MODE_READ = 1
@@ -60,9 +62,11 @@ class Node:
         self.ports = {}
         self.ports["LAST"] = None
         self.code = ""
+        self.code_lines = []
         self.program = ""
         self.labels = {}
         self.pc = 0
+        self.prev_pc = 0
         self.program_length = 0
         self.display_lines = []
         self.program_name = None
@@ -99,47 +103,55 @@ class Node:
             "JRO": (SRC,)
         }
 
-    def __str__(self):
-        code_lines = self.code.split('\n')
-        code_lines += [''] * (CODE_LINES - len(code_lines))
+
+    def str_static(self):
+        self.code_lines = self.code.split('\n')
+        self.code_lines += [''] * (CODE_LINES - len(self.code_lines))
         for c in xrange(CODE_LINES):
-            if self.display_lines and c == self.display_lines[self.pc]:
-                code_lines[c] = "|>" + code_lines[c].ljust(LINE_LEN, ' ') + '|'
-            else:
-                code_lines[c] = "| " + code_lines[c].ljust(LINE_LEN, ' ') + '|'
+            self.code_lines[c] = self.code_lines[c].ljust(LINE_LEN, ' ')
 
-        if self.acc <= -100:
-            acc_str = "%s|\n" % (str(self.acc).center(5))
-        else:
-            acc_str = "(%s)|\n" % (str(self.acc).center(3))
-        if self.bak <= -100:
-            bak_str = "%s|\n" % (str(self.bak).center(5))
-        else:
-            bak_str = "(%s)|\n" % (str(self.bak).center(3))
-
-        s = "-------------------------\n"
+        s = "--------------------------\n"
         for i in xrange(CODE_LINES):
-            s += code_lines[i]
+            s += '|' + self.code_lines[i] + '|'
             if i == 0:
                 s += " ACC |\n"
-            elif i == 1:
-                s += acc_str
             elif i == 2:
                 s += "-----|\n"
             elif i == 3:
                 s += " BAK |\n"
-            elif i == 4:
-                s += bak_str
             elif i == 5:
                 s += "-----|\n"
             else:
                 s += "     |\n"
-        s += "-------------------------\n"
+        s += "--------------------------\n"
         return s
 
-    def print_nc(self, window):
+
+    def print_frame_nc(self, window):
         window.clear()
-        window.addstr(str(self))
+        window.addstr(self.str_static())
+
+    def print_nc(self, window):
+        # TODO: ~magic~numbers~
+        if self.display_lines:
+            window.addstr(self.display_lines[self.prev_pc]+1, 1,
+                          self.code_lines[self.display_lines[self.prev_pc]])
+            window.addstr(self.display_lines[self.pc]+1, 1,
+                          self.code_lines[self.display_lines[self.pc]],
+                          A_REVERSE)
+
+        if self.acc <= -100:
+            acc_str = "%s|\n" % (str(self.acc).center(5))
+        else:
+            acc_str = "%s|\n" % (("(%s)" % (str(self.acc))).center(5))
+        if self.bak <= -100:
+            bak_str = "%s|\n" % (str(self.bak).center(5))
+        else:
+            bak_str = "%s|\n" % (("(%s)" % (str(self.bak))).center(5))
+
+        window.addstr(2, 20, acc_str.center(5))
+        window.addstr(5, 20, bak_str.center(5))
+
         window.refresh()
 
     def print_labels(self):
@@ -196,7 +208,7 @@ class Node:
                 self.ports[dst].give(self.resolve_src(src))
             else:
                 return 0
-        elif dst == "ACC":
+        elif dst == "ACC": #TODO: acc doesn't get set? (node 2,0)
             self.acc = self.resolve_src(src)
         return 1
 
@@ -342,4 +354,5 @@ class Node:
     def step(self):
         if self.program:
             instr = self.program[self.pc]
+            self.prev_pc = self.pc
             self.pc = (self.pc + instr[0](*instr[1:])) % self.program_length
