@@ -1,4 +1,4 @@
-###TIS-100 Emulator
+### TIS-100 Emulator
 
 Emulator for the fake computer previously emulated by [Zachtronics](http://www.zachtronics.com/)' game [TIS-100](http://www.zachtronics.com/tis-100/)
 
